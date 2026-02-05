@@ -1,0 +1,8 @@
+transformers==4.56.0
+accelerate==0.33.0
+torch
+torchvision
+pillow
+sentencepiece
+fastapi
+uvicorn[standard]

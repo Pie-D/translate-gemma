@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  translategemma-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: translate-gemma-4b:0402
+    container_name: translategemma-api
+    ports:
+      - "8000:8000"
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      - HF_HOME=/models
+      - TRANSFORMERS_CACHE=/models
+      - TORCH_HOME=/models
+    volumes:
+      - ./models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+
