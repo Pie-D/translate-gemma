@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package translategemma.v1;
+
+// API gRPC cho TranslateGemma (text + image URL).
+service TranslateGemmaService {
+  rpc TranslateText(TranslateTextRequest) returns (TranslateResponse) {}
+  rpc TranslateImage(TranslateImageRequest) returns (TranslateResponse) {}
+}
+
+message TranslateTextRequest {
+  string source_lang_code = 1;
+  string target_lang_code = 2;
+  string text = 3;
+}
+
+message TranslateImageRequest {
+  string source_lang_code = 1;
+  string target_lang_code = 2;
+  string url = 3;
+}
+
+message TranslateResponse {
+  string translation = 1;
+}
+

@@ -17,7 +17,8 @@ WORKDIR /app
 
 COPY requirements.txt /app/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
-
+RUN pip3 install bitsandbytes accelerate 
+# RUN pip3 install flash-attn --no-build-isolation
 COPY main.py /app/main.py
 
 RUN mkdir -p /models

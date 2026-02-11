@@ -1,14 +1,14 @@
 version: "3.9"
 
 services:
-  translategemma-api:
+  translategemma-grpc:
     build:
       context: .
-      dockerfile: Dockerfile
-    image: translate-gemma-4b:1202
-    container_name: translategemma-api
+      dockerfile: Dockerfile.grpc
+    image: gemma-grpc:1102
+    container_name: translategemma-grpc
     ports:
-      - "8000:8000"
+      - "50051:50051"
     environment:
       - HF_TOKEN=${HF_TOKEN}
       - HF_HOME=/models
