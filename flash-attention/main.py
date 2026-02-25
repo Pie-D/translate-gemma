@@ -11,14 +11,14 @@ BATCH_SIZE = 32
 BATCH_TIMEOUT = 0.01   # giảm timeout để giảm latency
 MAX_NEW_TOKENS = 256   # giảm latency rất nhiều
 
-print("Loading processor & model...")
+print("Loading processor & model (Flash Attention 2)...")
 processor = AutoProcessor.from_pretrained(MODEL_ID)
 
 model = AutoModelForImageTextToText.from_pretrained(
     MODEL_ID,
     device_map="cuda:0",
     torch_dtype=torch.bfloat16,
-    attn_implementation="sdpa",   # ổn định hơn flash
+    attn_implementation="flash_attention_2",   # Flash Attention 2 - tối ưu tốc độ
 )
 
 # compile giảm overhead forward
@@ -27,7 +27,7 @@ model = torch.compile(model, mode="reduce-overhead")
 if getattr(model.config, "pad_token_id", None) is None:
     model.config.pad_token_id = model.config.eos_token_id
 
-print("Model loaded.")
+print("Model loaded with Flash Attention 2.")
 
 # ================= FASTAPI =================
 app = FastAPI()
@@ -160,7 +160,6 @@ async def _gpu_worker():
         tokenized_list = [t for t, _ in batch]
 
         try:
-            # 🔥 chạy trực tiếp — KHÔNG dùng ThreadPoolExecutor
             translations = _run_batch(tokenized_list)
 
             for (_, fut), tr in zip(batch, translations):
@@ -176,7 +175,6 @@ async def _gpu_worker():
 # ================= API =================
 @app.post("/translate/text")
 async def translate_text(req: TextTranslateRequest):
-    print(f"Received request: {req.source_lang_code} → {req.target_lang_code}, text length: {len(req.text)}")
     loop = asyncio.get_event_loop()
     fut = loop.create_future()
 

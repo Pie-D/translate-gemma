@@ -1,13 +1,12 @@
 version: "3.9"
 
 services:
-  translategemma-api:
+  translategemma-flash:
     build:
       context: .
       dockerfile: Dockerfile
-    # image: translate-gemma-4b:1202 image old
-    image: translate-gemma-4b:2402
-    container_name: translategemma-api
+    image: gemma-flash:1102
+    container_name: translategemma-flash
     ports:
       - "8000:8000"
     environment:
@@ -16,10 +15,9 @@ services:
       - TRANSFORMERS_CACHE=/models
       - TORCH_HOME=/models
     volumes:
-      - ./models:/models
+      - ../models:/models
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: ["gpu"]
-

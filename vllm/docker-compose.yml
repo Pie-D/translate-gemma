@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  vllm-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: translate-gemma-vllm-engine
+    container_name: translate-gemma-vllm
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_ID=google/translategemma-4b-it
+      - HF_HOME=/models
+      - TRANSFORMERS_CACHE=/models
+    volumes:
+      - ./models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: ["gpu"]
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
+  vllm-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: translate-gemma-vllm-app
+    container_name: translate-gemma-vllm-app
+    ports:
+      - "8001:8001"
+    environment:
+      - VLLM_BASE_URL=http://vllm-engine:8000/v1
+    depends_on:
+      vllm-engine:
+        condition: service_healthy

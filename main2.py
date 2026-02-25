@@ -1,8 +1,9 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import torch
 from fastapi import FastAPI
 from pydantic import BaseModel
-from typing import Any, List, Tuple, Union
+from typing import Any, List, Tuple
 from transformers import AutoModelForImageTextToText, AutoProcessor
 
 # ================= CONFIG =================
@@ -28,6 +29,9 @@ if getattr(model.config, "pad_token_id", None) is None:
     model.config.pad_token_id = model.config.eos_token_id
 
 print("Model loaded.")
+
+# ThreadPoolExecutor: 1 worker vì chỉ 1 GPU
+_executor = ThreadPoolExecutor(max_workers=1)
 
 # ================= FASTAPI =================
 app = FastAPI()
@@ -160,8 +164,10 @@ async def _gpu_worker():
         tokenized_list = [t for t, _ in batch]
 
         try:
-            # 🔥 chạy trực tiếp — KHÔNG dùng ThreadPoolExecutor
-            translations = _run_batch(tokenized_list)
+            # Chạy _run_batch trên thread riêng → không block event loop
+            translations = await loop.run_in_executor(
+                _executor, _run_batch, tokenized_list
+            )
 
             for (_, fut), tr in zip(batch, translations):
                 if not fut.cancelled():
@@ -195,4 +201,4 @@ async def startup_event():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000)
+    uvicorn.run("main2:app", host="0.0.0.0", port=8000)

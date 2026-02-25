@@ -1,0 +1,6 @@
+vllm>=0.6.0
+transformers>=4.56.0
+accelerate
+fastapi
+uvicorn[standard]
+openai>=1.0.0
